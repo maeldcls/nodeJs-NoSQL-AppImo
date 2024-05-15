@@ -30,6 +30,7 @@ router.post('/', async(req,res)=>{
 
 
 router.get('/:id', async(req,res)=>{
+
     try{
         const { id } = req.params;
         
@@ -40,7 +41,7 @@ router.get('/:id', async(req,res)=>{
         const annonce = await Annonce.findById(id);
 
         if(!annonce){
-            return res.status(400).json({message:"Annonce not found"});
+            return res.status(404).json({message:"Annonce not found"});
         }else{
             return res.status(200).json(annonce);
         }
@@ -56,30 +57,46 @@ router.put('/edit/:id', async(req,res)=>{
 
         if(!Mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({message:"Invalid Id"});
-        } 
-
-        const annonce = await Annonce.findByIdAndUpdate(id,req.body);
-
-        if(!annonce){
-            return res.status(404).json({message:"Annonce not found"});
-        }else{
-            const updatedAnnonce = await Annonce.findById(id);
-            return res.status(200).json({message:"Annonce edited successfully",updated:updatedAnnonce});
         }
+
+        
+        const annonce = await Annonce.findOneAndUpdate({_id: id},req.body,{
+            new: true,
+            runValidators: true,
+          }).then((annonce) => {
+
+            if(!annonce){
+                return res.status(404).json({message:"Annonce not found"});
+            }else{
+                return res.status(200).json({message:"Annonce edited successfully",annonce:annonce});
+            }
+        }).catch((error) => {
+            return res
+              .status(500)
+              .json({
+                message: "Failed to update annonce",
+                error: error.toString(),
+              }); // 500
+          });
+
 
     }catch(error){
         res.status(500).json({message: error.message});
     }
 })
 
+
+
 router.delete('/delete/:id', async(req,res)=>{
     try{
         const { id } = req.params;
-        const annonce = await Annonce.findByIdAndDelete(id);
+       
 
         if(!Mongoose.Types.ObjectId.isValid(req.params.id)){
             return res.status(400).json({message:"Invalid Id"});
         } 
+        const annonce = await Annonce.findByIdAndDelete(id);
+        
         if(!annonce){
             return res.status(404).json({message:"Annonce not found"});
         }else{
