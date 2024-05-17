@@ -1,5 +1,5 @@
  const express = require("express");
-
+ const multer = require('multer');
 const Annonce = require('../models/Annonce.js')
 const router = express.Router();
 const Mongoose = require('mongoose');
@@ -7,6 +7,7 @@ const Mongoose = require('mongoose');
 router.use(express.json());
 router.use(express.urlencoded({ extended: true }));
 
+const upload = multer();
 
 router.get('/', async(req,res)=>{
     try{
@@ -19,13 +20,22 @@ router.get('/', async(req,res)=>{
 
 
 //add annonce
-router.post('/', async(req,res)=>{
-    try{
-        const annonce = await Annonce.create(req.body);
-        return res.status(201).json(annonce);
-    }catch(error){
-        res.status(400).json({message: error.message});
-    }
+router.post('/',upload.none(), async(req,res)=>{
+    try {
+        const { titre, description, photo, latitude , longitude } = req.body;
+        const annonce = new Annonce({
+          titre,
+          description,
+          photo,
+           latitude, 
+            longitude 
+        });
+        await annonce.save();
+        res.status(201).send({ message: 'Annonce ajoutée avec succès', annonce });
+      } catch (error) {
+        console.error(error);
+        res.status(500).send({ message: 'Erreur lors de l\'ajout de l\'annonce' });
+      }
 })
 
 

@@ -1,10 +1,13 @@
 import { Pressable, Text } from "@gluestack-ui/themed";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Button, StyleSheet, View , Image } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 
 
 const Annonces = () => {
   const [annonces, setAnnonces] = useState([]);
+
+  const navigation = useNavigation();
 
   useEffect(() => {
     // Envoie une requête GET à l'API
@@ -13,16 +16,24 @@ const Annonces = () => {
       .then((data) => setAnnonces(data));
   }, []);
 
+
   return (
     <View>
         {annonces.map((annonce) => (
-          <Pressable onPress={() => console.log(annonce._id)}
+          <Pressable key={annonce._id} onPress={() => {
+            navigation.navigate("DetailAnnonceScreen", { annonceId: annonce._id });
+          }}
           p="$5"
           borderColor="$fuchsia400"
           style={styles.pressable}>
           <Text key={annonce._id} style={styles.text}>{annonce.titre}</Text>
           </Pressable>
         ))}
+        <Button
+        title="Ajouter une annonce"
+        onPress={() => navigation.navigate('FormAjoutAnnonce')}
+      />
+      
       </View>
   );
 };
